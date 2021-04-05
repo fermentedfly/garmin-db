@@ -13,3 +13,6 @@ INSERT INTO scale (name, scale) VALUES ('Hiking', 3);
 INSERT INTO scale (name, scale) VALUES ('Climbing', 3);
 INSERT INTO scale (name, scale) VALUES ('Walking', 1.5);
 INSERT INTO scale (name, scale) VALUES ('Rowing', 2.5);
+INSERT INTO scale (name, scale) VALUES ('Mountain Biking', 2);
+INSERT INTO scale (name, scale) VALUES ('Mountaineering', 3);
+INSERT INTO scale (name, scale) VALUES ('Snowshoeing', 3);

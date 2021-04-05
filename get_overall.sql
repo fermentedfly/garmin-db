@@ -1,0 +1,1 @@
+SELECT SUM(distance * s.scale) FROM data INNER JOIN scale s on s.id = data.type
