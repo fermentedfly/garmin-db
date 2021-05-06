@@ -1,0 +1,36 @@
+<!doctype html>
+<title>Blog</title>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+<div class="content">
+    <div class="form">
+        <form action="{{ url_for('create') }}" method="post" class="upload-post" enctype="multipart/form-data">
+            <p>Garmin Connect Export:<input type="file" name="csvToUpload">
+            <p><input type="submit" value="Upload csv" name="submit">
+        </form>
+    </div>
+    <div class="overall">
+        <h2>Overall km</h2>
+        <p>{{overall}}</p>
+    </div>
+    <div class="entries">
+        <h2>Entries</h2>
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Distance</th>
+                <th>Elevation</th>
+            </tr>
+            {% for e in entries %}
+            <tr>
+                <td>{{e.title|safe}}</td>
+                <td>{{e.date|safe}}</td>
+                <td>{{e.time|safe}}</td>
+                <td>{{e.distance|safe}}</td>
+                <td>{{e.elevation|safe}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
