@@ -32,12 +32,6 @@ DUMMY = [
         }
 ]       
 
-
-# sanity check route
-@app.route('/ping', methods=['GET'])
-def ping_pong():
-        return jsonify('pong!')
-
 @app.route('/activities', methods=['GET'])
 def all_activities():
     return jsonify({
