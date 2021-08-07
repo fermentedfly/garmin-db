@@ -1,1 +1,2 @@
--- This file should undo anything in `up.sql`
+DROP TABLE activities;
+DROP TABLE valid_activity_types;
