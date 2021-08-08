@@ -1,27 +1,17 @@
+use crate::schema::activities;
+
 use chrono::{NaiveDateTime, NaiveTime};
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize};
+use std::fmt;
+use std::fmt::Formatter;
 
-#[derive(Debug, Deserialize)]
-pub enum ActivityType {
-    Cycling,
-    Swimming,
-    Running,
-    Hiking,
-    Climbing,
-    Walking,
-    Rowing,
-    #[serde(rename = "Mountain Biking")]
-    MountainBiking,
-    Mountaineering,
-    Snowshoeing,
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Queryable, Insertable, Deserialize, Debug)]
+#[table_name = "activities"]
 #[serde(rename_all(deserialize = "PascalCase"))]
 pub struct Activity {
     title: String,
     #[serde(rename(deserialize = "Activity Type"))]
-    activity_type: ActivityType,
+    activity_type: String,
     #[serde(deserialize_with = "de_naive_date_time")]
     date: NaiveDateTime,
     #[serde(deserialize_with = "de_naive_time")]
@@ -31,6 +21,13 @@ pub struct Activity {
     #[serde(rename(deserialize = "Elev Gain"))]
     #[serde(deserialize_with = "de_f64")]
     elevation: f64,
+}
+
+impl fmt::Display for Activity
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}: {}, {}km, {}m {}", self.title, self.date, self.activity_type, self.distance, self.elevation, self.time)
+    }
 }
 
 fn de_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>

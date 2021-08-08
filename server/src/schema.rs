@@ -1,24 +1,22 @@
 table! {
     activities (id) {
         id -> Int4,
-        #[sql_name = "type"]
-        type_ -> Text,
+        activity_type -> Text,
         date -> Timestamp,
-        time -> Interval,
-        distance -> Numeric,
-        elevation -> Nullable<Numeric>,
+        time -> Time,
+        distance -> Float8,
+        elevation -> Float8,
         title -> Nullable<Text>,
     }
 }
 
 table! {
-    valid_activity_types (type_) {
-        #[sql_name = "type"]
-        type_ -> Text,
+    valid_activity_types (activity_type) {
+        activity_type -> Text,
     }
 }
 
-joinable!(activities -> valid_activity_types (type));
+joinable!(activities -> valid_activity_types (activity_type));
 
 allow_tables_to_appear_in_same_query!(
     activities,
