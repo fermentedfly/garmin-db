@@ -1,4 +1,4 @@
-use garmin_db_server::read_csv;
+use garmin_db_server::{establish_connection, insert_activity, read_csv};
 use std::{env, process};
 
 fn main() {
@@ -11,10 +11,12 @@ fn main() {
 
     let filename = &args[1];
 
+    let connection = establish_connection();
+
     match read_csv(filename) {
         Ok(data) => {
             for d in data {
-                println!("{:?}", d);
+                insert_activity(d, &connection);
             }
         }
         Err(err) => {
