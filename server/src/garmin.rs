@@ -1,50 +1,83 @@
-use crate::schema::activities;
+use crate::schema::{activities, activity_type};
 
 use chrono::{NaiveDateTime, NaiveTime, Timelike};
 use diesel::data_types::PgInterval;
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{de, Deserialize, Deserializer};
 
-#[derive(Queryable, AsChangeset, Debug)]
+#[derive(Identifiable, Queryable, Debug, Clone, PartialEq)]
+#[table_name = "activity_type"]
+pub struct ActivityType {
+    id: i32,
+    name: String,
+    scale: f64,
+}
+
+impl ActivityType {
+    pub fn as_name_to_id(&self) -> (String, i32) {
+        (self.name.clone(), self.id)
+    }
+}
+
+#[derive(Identifiable, Associations, Queryable, Debug, Clone, PartialEq)]
 #[table_name = "activities"]
+#[belongs_to(ActivityType)]
 pub struct Activity {
     id: i32,
     title: String,
-    activity_type: String,
+    activity_type_id: i32,
     date: NaiveDateTime,
     time: PgInterval,
     distance: f64,
     elevation: f64,
 }
 
-#[derive(Insertable, Deserialize, Debug)]
+#[derive(Associations, Insertable, Queryable, Debug, Clone, PartialEq)]
 #[table_name = "activities"]
-#[serde(rename_all(deserialize = "PascalCase"))]
+#[belongs_to(ActivityType)]
 pub struct InsertableActivity {
     title: String,
-    #[serde(rename(deserialize = "Activity Type"))]
-    activity_type: String,
-    #[serde(deserialize_with = "de_naive_date_time")]
+    activity_type_id: i32,
     date: NaiveDateTime,
-    #[serde(deserialize_with = "de_pg_interval")]
     time: PgInterval,
-    #[serde(deserialize_with = "de_f64")]
     distance: f64,
-    #[serde(rename(deserialize = "Elev Gain"))]
-    #[serde(deserialize_with = "de_f64")]
     elevation: f64,
 }
 
 impl InsertableActivity {
-    fn from_activity(activity: Activity) -> InsertableActivity {
+    pub fn new(
+        title: String,
+        activity_type_id: i32,
+        date: NaiveDateTime,
+        time: PgInterval,
+        distance: f64,
+        elevation: f64,
+    ) -> InsertableActivity {
         InsertableActivity {
-            title: activity.title,
-            activity_type: activity.activity_type,
-            date: activity.date,
-            time: activity.time,
-            distance: activity.distance,
-            elevation: activity.elevation,
+            title,
+            activity_type_id,
+            date,
+            time,
+            distance,
+            elevation,
         }
     }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all(deserialize = "PascalCase"))]
+pub struct CSVActivity {
+    pub(crate) title: String,
+    #[serde(rename(deserialize = "Activity Type"))]
+    pub(crate) activity_type: String,
+    #[serde(deserialize_with = "de_naive_date_time")]
+    pub(crate) date: NaiveDateTime,
+    #[serde(deserialize_with = "de_pg_interval")]
+    pub(crate) time: PgInterval,
+    #[serde(deserialize_with = "de_f64")]
+    pub(crate) distance: f64,
+    #[serde(rename(deserialize = "Total Ascent"))]
+    #[serde(deserialize_with = "de_f64")]
+    pub(crate) elevation: f64,
 }
 
 fn de_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>

@@ -2,7 +2,7 @@ table! {
     activities (id) {
         id -> Int4,
         title -> Text,
-        activity_type -> Text,
+        activity_type_id -> Int4,
         date -> Timestamp,
         time -> Interval,
         distance -> Float8,
@@ -11,11 +11,16 @@ table! {
 }
 
 table! {
-    valid_activity_types (activity_type) {
-        activity_type -> Text,
+    activity_type (id) {
+        id -> Int4,
+        name -> Text,
+        scale -> Float8,
     }
 }
 
-joinable!(activities -> valid_activity_types (activity_type));
+joinable!(activities -> activity_type (activity_type_id));
 
-allow_tables_to_appear_in_same_query!(activities, valid_activity_types,);
+allow_tables_to_appear_in_same_query!(
+    activities,
+    activity_type,
+);
