@@ -7,9 +7,11 @@ use std::collections::HashMap;
 use std::env;
 use std::error::Error;
 
+use diesel::dsl::sum;
 use diesel::expression_methods::ExpressionMethods;
+use diesel::pg::Pg;
 use diesel::query_dsl::QueryDsl;
-use diesel::{Connection, PgConnection, QueryResult, RunQueryDsl};
+use diesel::{debug_query, Connection, PgConnection, QueryResult, RunQueryDsl};
 use dotenv::dotenv;
 
 use crate::garmin::{Activity, ActivityType, CSVActivity, InsertableActivity};
@@ -28,6 +30,17 @@ pub fn read_csv(path: &str) -> Result<Vec<garmin::CSVActivity>, Box<dyn Error>> 
 
 pub fn all_activities(connection: &PgConnection) -> QueryResult<Vec<Activity>> {
     activities::table.load::<Activity>(connection)
+}
+
+pub fn total_km(connection: &PgConnection) -> QueryResult<Option<f64>> {
+    let query = activities::table
+        .inner_join(activity_type::table)
+        .select(sum(activities::distance * activity_type::scale));
+
+    let debug = debug_query::<Pg, _>(&query);
+    println!("{}:?", debug);
+
+    query.first::<Option<f64>>(connection)
 }
 
 pub fn insert_activity(activity: CSVActivity, connection: &PgConnection) -> QueryResult<usize> {
