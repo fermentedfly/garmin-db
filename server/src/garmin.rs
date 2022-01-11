@@ -10,6 +10,7 @@ pub struct ActivityType {
     id: i32,
     name: String,
     scale: f64,
+    elevation_scale: Option<f64>,
 }
 
 impl ActivityType {

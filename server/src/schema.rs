@@ -15,6 +15,7 @@ table! {
         id -> Int4,
         name -> Text,
         scale -> Float8,
+        elevation_scale -> Nullable<Float8>,
     }
 }
 
