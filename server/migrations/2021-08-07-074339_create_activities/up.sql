@@ -1,22 +1,21 @@
 CREATE TABLE activity_type
 (
-    id   SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    scale FLOAT NOT NULL
+    id              SERIAL PRIMARY KEY,
+    name            TEXT  NOT NULL, -- name of the activity type
+    scale           FLOAT NOT NULL, -- scale to convert to equivalent kilometers
+    elevation_scale FLOAT           -- elevation gain in meters to equivalent kilometers
 );
 
-INSERT INTO activity_type (name, scale)
-VALUES ('Cycling', 1),
-       ('Swimming', 18),
-       ('Open Water Swimming', 18),
-       ('Running', 4),
-       ('Hiking', 3),
-       ('Climbing', 5),
-       ('Walking', 1.5),
-       ('Rowing', 2.5),
-       ('Mountain Biking', 1),
-       ('Mountaineering', 5),
-       ('Snowshoeing', 2);
+INSERT INTO activity_type (name, scale, elevation_scale)
+VALUES ('Cycling', 1, 0.025),
+       ('Swimming', 18, NULL),
+       ('Running', 4, 0.025),
+       ('Hiking', 3, 0.025),
+       ('Walking', 1.5,  0.0125),
+       ('Rowing', 2.5, NULL),
+       ('Mountain Biking', 1, 0.05),
+       ('Mountaineering', 5, 0.05),
+       ('Snowshoeing', 2, NULL);
 
 CREATE TABLE activities
 (

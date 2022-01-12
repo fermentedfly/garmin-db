@@ -1,84 +1,74 @@
-use crate::schema::{activities, activity_type};
-
 use chrono::{NaiveDateTime, NaiveTime, Timelike};
 use diesel::data_types::PgInterval;
 use serde::{de, Deserialize, Deserializer};
+use std::collections::HashMap;
+use std::error::Error;
 
-#[derive(Identifiable, Queryable, Debug, Clone, PartialEq)]
-#[table_name = "activity_type"]
-pub struct ActivityType {
-    id: i32,
-    name: String,
-    scale: f64,
-    elevation_scale: Option<f64>,
-}
+use crate::InsertableActivity;
 
-impl ActivityType {
-    pub fn as_name_to_id(&self) -> (String, i32) {
-        (self.name.clone(), self.id)
-    }
-}
-
-#[derive(Identifiable, Associations, Queryable, Debug, Clone, PartialEq)]
-#[table_name = "activities"]
-#[belongs_to(ActivityType)]
-pub struct Activity {
-    id: i32,
+#[derive(Deserialize, Debug)]
+#[serde(rename_all(deserialize = "PascalCase"))]
+struct CSVActivity {
     title: String,
-    activity_type_id: i32,
+    #[serde(rename(deserialize = "Activity Type"))]
+    activity_type: String,
+    #[serde(deserialize_with = "de_naive_date_time")]
     date: NaiveDateTime,
+    #[serde(deserialize_with = "de_pg_interval")]
     time: PgInterval,
+    #[serde(deserialize_with = "de_f64")]
     distance: f64,
+    #[serde(rename(deserialize = "Total Ascent"))]
+    #[serde(deserialize_with = "de_f64")]
     elevation: f64,
 }
 
-#[derive(Associations, Insertable, Queryable, Debug, Clone, PartialEq)]
-#[table_name = "activities"]
-#[belongs_to(ActivityType)]
-pub struct InsertableActivity {
-    title: String,
-    activity_type_id: i32,
-    date: NaiveDateTime,
-    time: PgInterval,
-    distance: f64,
-    elevation: f64,
-}
+impl CSVActivity {
+    fn to_insertable_activity(
+        &self,
+        activity_id_map: &HashMap<String, i32>,
+    ) -> Result<InsertableActivity, &'static str> {
+        // convert garmin activity type
+        let activity_name = match self.activity_type.as_str() {
+            "Open Water Swimming" => "Swimming",
+            "Climbing" => "Mountaineering",
+            s => s,
+        };
 
-impl InsertableActivity {
-    pub fn new(
-        title: String,
-        activity_type_id: i32,
-        date: NaiveDateTime,
-        time: PgInterval,
-        distance: f64,
-        elevation: f64,
-    ) -> InsertableActivity {
-        InsertableActivity {
-            title,
-            activity_type_id,
-            date,
-            time,
-            distance,
-            elevation,
+        // fix swimming distance given as meters
+        let distance = match activity_name {
+            "Swimming" => self.distance * 1e-3,
+            _ => self.distance,
+        };
+
+        if let Some(activity_type_id) = activity_id_map.get(activity_name as &str) {
+            Ok(InsertableActivity::new(
+                &self.title,
+                *activity_type_id,
+                self.date,
+                self.time,
+                distance,
+                self.elevation,
+            ))
+        } else {
+            Err("bad activity name")
         }
     }
 }
 
-#[derive(Deserialize, Debug)]
-#[serde(rename_all(deserialize = "PascalCase"))]
-pub struct CSVActivity {
-    pub(crate) title: String,
-    #[serde(rename(deserialize = "Activity Type"))]
-    pub(crate) activity_type: String,
-    #[serde(deserialize_with = "de_naive_date_time")]
-    pub(crate) date: NaiveDateTime,
-    #[serde(deserialize_with = "de_pg_interval")]
-    pub(crate) time: PgInterval,
-    #[serde(deserialize_with = "de_f64")]
-    pub(crate) distance: f64,
-    #[serde(rename(deserialize = "Total Ascent"))]
-    #[serde(deserialize_with = "de_f64")]
-    pub(crate) elevation: f64,
+pub fn read_csv(
+    path: &str,
+    activity_id_map: &HashMap<String, i32>,
+) -> Result<Vec<InsertableActivity>, Box<dyn Error>> {
+    let mut reader = csv::ReaderBuilder::new().delimiter(b',').from_path(path)?;
+
+    let records: Vec<_> = reader
+        .deserialize::<CSVActivity>()
+        .into_iter()
+        .filter_map(|x| x.ok())
+        .filter_map(|x| x.to_insertable_activity(activity_id_map).ok())
+        .collect();
+    Ok(records)
 }
 
 fn de_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>

@@ -1,4 +1,7 @@
-use garmin_db_server::{establish_connection, insert_activities, read_csv};
+use diesel::Connection;
+use garmin_db_server::garmin::read_csv;
+use garmin_db_server::{establish_connection, get_activity_map, insert_activities};
+use std::error::Error;
 use std::{env, process};
 
 fn main() {
@@ -13,17 +16,13 @@ fn main() {
 
     let connection = establish_connection();
 
-    match read_csv(filename) {
-        Ok(data) => match insert_activities(data, &connection) {
-            Ok(nr_lines) => {
-                println!("inserted {} activities", nr_lines);
-            }
-            Err(err) => {
-                println!("error during insert: {}", err);
-            }
-        },
-        Err(err) => {
-            println!("error decoding csv: {}", err);
-        }
+    match connection.transaction::<_, Box<dyn Error>, _>(|| {
+        let am = get_activity_map(&connection).unwrap();
+        let data = read_csv(filename, &am)?;
+        let nr_lines = insert_activities(data, &connection)?;
+        Ok(nr_lines)
+    }) {
+        Ok(nr_lines) => println!("inserted {} activities", nr_lines),
+        Err(e) => println!("error: {}", e),
     }
 }
