@@ -1,9 +1,9 @@
 use clap::{App, Arg};
 use diesel::Connection;
-use garmin_db_server::garmin::read_csv;
-use garmin_db_server::{
+use garmin_db_server::db::{
     establish_connection, get_activity_map, get_user_by_name, insert_activities,
 };
+use garmin_db_server::garmin::read_csv;
 use std::error::Error;
 
 fn main() {

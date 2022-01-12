@@ -1,4 +1,4 @@
-use garmin_db_server::{add_user, establish_connection};
+use garmin_db_server::db::{add_user, establish_connection};
 use std::{env, process};
 
 fn main() {

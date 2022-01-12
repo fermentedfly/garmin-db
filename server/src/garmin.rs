@@ -1,10 +1,9 @@
+use crate::db::NewActivity;
 use chrono::{NaiveDateTime, NaiveTime, Timelike};
 use diesel::data_types::PgInterval;
 use serde::{de, Deserialize, Deserializer};
 use std::collections::HashMap;
 use std::error::Error;
-
-use crate::NewActivity;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all(deserialize = "PascalCase"))]

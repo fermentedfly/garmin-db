@@ -1,5 +1,5 @@
 use clap::{App, Arg};
-use garmin_db_server::{establish_connection, total_km};
+use garmin_db_server::db::{establish_connection, total_km};
 
 fn main() {
     let matches = App::new("Get totals of a user")

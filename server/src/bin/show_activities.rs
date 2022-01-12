@@ -1,4 +1,4 @@
-use garmin_db_server::{all_activities, establish_connection};
+use garmin_db_server::db::{all_activities, establish_connection};
 
 fn main() {
     let connection = establish_connection();
