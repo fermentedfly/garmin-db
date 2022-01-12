@@ -24,18 +24,24 @@ pub fn all_activities(connection: &PgConnection) -> QueryResult<Vec<Activity>> {
     activities::table.load::<Activity>(connection)
 }
 
-pub fn total_km(connection: &PgConnection, include_elevation: bool) -> QueryResult<Option<f64>> {
+pub fn total_km(
+    connection: &PgConnection,
+    user_name: &str,
+    include_elevation: bool,
+) -> QueryResult<Option<f64>> {
+    let scaled_distance = activities::distance * activity_type::scale;
+    let scaled_elevation = activities::elevation * activity_type::elevation_scale;
+
+    let q = activities::table
+        .inner_join(activity_type::table)
+        .inner_join(users::table)
+        .filter(users::user_name.eq(user_name));
+
     if include_elevation {
-        activities::table
-            .inner_join(activity_type::table)
-            .select(sum(activities::distance * activity_type::scale
-                + activities::elevation * activity_type::elevation_scale))
+        q.select(sum(scaled_distance + scaled_elevation))
             .first(connection)
     } else {
-        activities::table
-            .inner_join(activity_type::table)
-            .select(sum(activities::distance * activity_type::scale))
-            .first(connection)
+        q.select(sum(scaled_distance)).first(connection)
     }
 }
 
