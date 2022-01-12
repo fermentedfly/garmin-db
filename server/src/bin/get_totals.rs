@@ -2,7 +2,7 @@ use garmin_db_server::{establish_connection, total_km};
 
 fn main() {
     let connection = establish_connection();
-    match total_km(&connection) {
+    match total_km(&connection, true) {
         Ok(data) => {
             println!("Overall km: {}", data.unwrap());
         }

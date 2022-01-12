@@ -24,11 +24,19 @@ pub fn all_activities(connection: &PgConnection) -> QueryResult<Vec<Activity>> {
     activities::table.load::<Activity>(connection)
 }
 
-pub fn total_km(connection: &PgConnection) -> QueryResult<Option<f64>> {
-    activities::table
-        .inner_join(activity_type::table)
-        .select(sum(activities::distance * activity_type::scale))
-        .first::<Option<f64>>(connection)
+pub fn total_km(connection: &PgConnection, include_elevation: bool) -> QueryResult<Option<f64>> {
+    if include_elevation {
+        activities::table
+            .inner_join(activity_type::table)
+            .select(sum(activities::distance * activity_type::scale
+                + activities::elevation * activity_type::elevation_scale))
+            .first(connection)
+    } else {
+        activities::table
+            .inner_join(activity_type::table)
+            .select(sum(activities::distance * activity_type::scale))
+            .first(connection)
+    }
 }
 
 pub fn get_activity_map(connection: &PgConnection) -> Result<HashMap<String, i32>, Box<dyn Error>> {
