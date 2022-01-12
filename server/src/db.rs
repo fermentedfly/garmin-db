@@ -1,4 +1,4 @@
-use crate::schema::{activities, activity_type};
+use crate::schema::{activities, activity_type, users};
 
 use chrono::NaiveDateTime;
 use diesel::data_types::PgInterval;
@@ -6,10 +6,10 @@ use diesel::data_types::PgInterval;
 #[derive(Identifiable, Queryable, Debug, Clone, PartialEq)]
 #[table_name = "activity_type"]
 pub struct ActivityType {
-    id: i32,
-    name: String,
-    scale: f64,
-    elevation_scale: f64,
+    pub id: i32,
+    pub name: String,
+    pub scale: f64,
+    pub elevation_scale: f64,
 }
 
 impl ActivityType {
@@ -18,24 +18,46 @@ impl ActivityType {
     }
 }
 
+#[derive(Identifiable, Queryable, Debug, Clone, PartialEq)]
+pub struct User {
+    pub id: i32,
+    pub user_name: String,
+}
+
+#[derive(Insertable, Clone)]
+#[table_name = "users"]
+pub struct NewUser {
+    user_name: String,
+}
+
+impl NewUser {
+    pub fn new(name: &String) -> NewUser {
+        NewUser {
+            user_name: name.clone(),
+        }
+    }
+}
+
 #[derive(Identifiable, Associations, Queryable, Debug, Clone, PartialEq)]
 #[table_name = "activities"]
 #[belongs_to(ActivityType)]
+#[belongs_to(User)]
 pub struct Activity {
-    id: i32,
-    title: String,
-    activity_type_id: i32,
-    date: NaiveDateTime,
-    time: PgInterval,
-    distance: f64,
-    elevation: f64,
+    pub id: i32,
+    pub title: String,
+    pub user_id: i32,
+    pub activity_type_id: i32,
+    pub date: NaiveDateTime,
+    pub time: PgInterval,
+    pub distance: f64,
+    pub elevation: f64,
 }
 
 #[derive(Associations, Insertable, Queryable, Debug, Clone, PartialEq)]
 #[table_name = "activities"]
-#[belongs_to(ActivityType)]
-pub struct InsertableActivity {
+pub struct NewActivity {
     title: String,
+    user_id: i32,
     activity_type_id: i32,
     date: NaiveDateTime,
     time: PgInterval,
@@ -43,17 +65,19 @@ pub struct InsertableActivity {
     elevation: f64,
 }
 
-impl InsertableActivity {
+impl NewActivity {
     pub fn new(
         title: &String,
+        user_id: i32,
         activity_type_id: i32,
         date: NaiveDateTime,
         time: PgInterval,
         distance: f64,
         elevation: f64,
-    ) -> InsertableActivity {
-        InsertableActivity {
+    ) -> NewActivity {
+        NewActivity {
             title: title.clone(),
+            user_id,
             activity_type_id,
             date,
             time,

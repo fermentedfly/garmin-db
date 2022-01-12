@@ -8,13 +8,13 @@ use std::env;
 use std::error::Error;
 
 use diesel::dsl::sum;
-use diesel::query_dsl::QueryDsl;
-use diesel::{Connection, PgConnection, QueryResult, RunQueryDsl};
+use diesel::prelude::*;
 use dotenv::dotenv;
 
-use crate::db::{Activity, ActivityType, InsertableActivity};
+use crate::db::{Activity, ActivityType, NewActivity, NewUser, User};
 use crate::schema::activities;
 use crate::schema::activity_type;
+use crate::schema::users;
 
 pub mod db;
 pub mod garmin;
@@ -45,7 +45,7 @@ pub fn get_activity_map(connection: &PgConnection) -> Result<HashMap<String, i32
 }
 
 pub fn insert_activities(
-    activity_vec: Vec<InsertableActivity>,
+    activity_vec: Vec<NewActivity>,
     connection: &PgConnection,
 ) -> QueryResult<usize> {
     diesel::insert_into(activities::table)
@@ -53,6 +53,20 @@ pub fn insert_activities(
         .on_conflict(activities::date)
         .do_nothing()
         .execute(connection)
+}
+
+pub fn add_user(name: &String, connection: &PgConnection) -> QueryResult<User> {
+    let new_user = NewUser::new(name);
+    diesel::insert_into(users::table)
+        .values(new_user)
+        .get_result(connection)
+}
+
+pub fn get_user_by_name(name: &str, connection: &PgConnection) -> QueryResult<User> {
+    users::table
+        .filter(users::user_name.eq(name))
+        .select(users::all_columns)
+        .get_result(connection)
 }
 
 pub fn establish_connection() -> PgConnection {

@@ -4,7 +4,7 @@ use serde::{de, Deserialize, Deserializer};
 use std::collections::HashMap;
 use std::error::Error;
 
-use crate::InsertableActivity;
+use crate::NewActivity;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all(deserialize = "PascalCase"))]
@@ -27,7 +27,8 @@ impl CSVActivity {
     fn to_insertable_activity(
         &self,
         activity_id_map: &HashMap<String, i32>,
-    ) -> Result<InsertableActivity, &'static str> {
+        user_id: i32,
+    ) -> Result<NewActivity, &'static str> {
         // convert garmin activity type
         let activity_name = match self.activity_type.as_str() {
             "Open Water Swimming" => "Swimming",
@@ -42,8 +43,9 @@ impl CSVActivity {
         };
 
         if let Some(activity_type_id) = activity_id_map.get(activity_name as &str) {
-            Ok(InsertableActivity::new(
+            Ok(NewActivity::new(
                 &self.title,
+                user_id,
                 *activity_type_id,
                 self.date,
                 self.time,
@@ -59,14 +61,15 @@ impl CSVActivity {
 pub fn read_csv(
     path: &str,
     activity_id_map: &HashMap<String, i32>,
-) -> Result<Vec<InsertableActivity>, Box<dyn Error>> {
+    user_id: i32,
+) -> Result<Vec<NewActivity>, Box<dyn Error>> {
     let mut reader = csv::ReaderBuilder::new().delimiter(b',').from_path(path)?;
 
     let records: Vec<_> = reader
         .deserialize::<CSVActivity>()
         .into_iter()
         .filter_map(|x| x.ok())
-        .filter_map(|x| x.to_insertable_activity(activity_id_map).ok())
+        .filter_map(|x| x.to_insertable_activity(activity_id_map, user_id).ok())
         .collect();
     Ok(records)
 }
