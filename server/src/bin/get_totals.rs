@@ -15,7 +15,8 @@ fn main() {
 
     let user_name = matches.value_of("username").unwrap();
 
-    let connection = establish_connection();
+    let connection = establish_connection().unwrap();
+    
     match total_km(&connection, user_name, true) {
         Ok(data) => {
             println!("Overall km: {}", data.unwrap());

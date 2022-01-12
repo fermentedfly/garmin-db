@@ -29,7 +29,7 @@ fn main() {
     let filename = matches.value_of("filename").unwrap();
     let username = matches.value_of("username").unwrap();
 
-    let connection = establish_connection();
+    let connection = establish_connection().unwrap();
 
     match connection.transaction::<_, Box<dyn Error>, _>(|| {
         let user = get_user_by_name(username, &connection)?;

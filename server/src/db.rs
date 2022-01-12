@@ -37,9 +37,9 @@ pub struct NewUser {
 }
 
 impl NewUser {
-    pub fn new(name: &String) -> NewUser {
+    pub fn new(name: &str) -> NewUser {
         NewUser {
-            user_name: name.clone(),
+            user_name: name.to_string(),
         }
     }
 }
@@ -73,7 +73,7 @@ pub struct NewActivity {
 
 impl NewActivity {
     pub fn new(
-        title: &String,
+        title: &str,
         user_id: i32,
         activity_type_id: i32,
         date: NaiveDateTime,
@@ -82,7 +82,7 @@ impl NewActivity {
         elevation: f64,
     ) -> NewActivity {
         NewActivity {
-            title: title.clone(),
+            title: title.to_string(),
             user_id,
             activity_type_id,
             date,
@@ -134,7 +134,7 @@ pub fn insert_activities(
         .execute(connection)
 }
 
-pub fn add_user(name: &String, connection: &PgConnection) -> QueryResult<User> {
+pub fn add_user(name: &str, connection: &PgConnection) -> QueryResult<User> {
     let new_user = NewUser::new(name);
     diesel::insert_into(users::table)
         .values(new_user)
@@ -148,9 +148,9 @@ pub fn get_user_by_name(name: &str, connection: &PgConnection) -> QueryResult<Us
         .get_result(connection)
 }
 
-pub fn establish_connection() -> PgConnection {
+pub fn establish_connection() -> Result<PgConnection, ConnectionError> {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url))
+    PgConnection::establish(&database_url)
 }

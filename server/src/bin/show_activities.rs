@@ -1,7 +1,7 @@
 use garmin_db_server::db::{all_activities, establish_connection};
 
 fn main() {
-    let connection = establish_connection();
+    let connection = establish_connection().unwrap();
     let res = all_activities(&connection);
 
     match res {

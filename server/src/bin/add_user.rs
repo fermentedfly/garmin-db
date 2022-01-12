@@ -8,7 +8,7 @@ fn main() {
         println!("error missing user name");
         process::exit(1);
     }
-    let connection = establish_connection();
+    let connection = establish_connection().unwrap();
     let user_name = &args[1];
     match add_user(user_name, &connection) {
         Ok(u) => println!("Added user: [{}] -> {}", u.id, u.user_name),

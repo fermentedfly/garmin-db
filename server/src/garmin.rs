@@ -100,12 +100,12 @@ where
 {
     let s: String = Deserialize::deserialize(deserializer)?;
     let s = s.trim();
-    let pattern = if s.contains(".") {
+    let pattern = if s.contains('.') {
         "%H:%M:%S%.f"
     } else {
         "%H:%M:%S"
     };
-    let time = NaiveTime::parse_from_str(&s, pattern).map_err(de::Error::custom)?;
+    let time = NaiveTime::parse_from_str(s, pattern).map_err(de::Error::custom)?;
     let u_seconds = ((time.hour() * 60 + time.minute()) * 60 + time.second()) * 1000
         + (time.nanosecond() / 1000);
     Ok(PgInterval::from_microseconds(u_seconds as i64))
