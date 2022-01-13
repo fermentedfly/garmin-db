@@ -114,7 +114,7 @@ pub fn total_km(
         q.select(sum(scaled_distance + scaled_elevation))
             .first(connection)
     } else {
-        q.select(sum(scaled_distance)).first(connection)
+        q.select(sum(scaled_distance)).get_result(connection)
     }
 }
 

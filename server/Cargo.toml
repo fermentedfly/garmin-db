@@ -12,6 +12,16 @@ serde = { version = "1.0", features = ["derive"] }
 diesel = {version ="1.4.5", features = ["chrono", "postgres"]}
 dotenv = "0.15"
 clap = { version = "3.0.6", features = ["derive"] }
+rocket = "0.4.10"
+
+[dependencies.rocket_contrib]
+version = "0.4.10"
+default-features = false
+features = ["json", "diesel_postgres_pool"]
+
+[[bin]]
+name = "server"
+path = "src/bin/server.rs"
 
 [[bin]]
 name = "read_csv_and_insert"

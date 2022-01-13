@@ -1,0 +1,2 @@
+[global.databases]
+garmin_db = {url = "postgres://postgres:password@localhost/garminDB"}
